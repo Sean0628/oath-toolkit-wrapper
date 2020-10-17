@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+
+set -eu
+
+export REPOSITORY_DIR="$(dirname $0)/.."
+export CONFIG_DIR="$REPOSITORY_DIR/config"
+export TMP_DIR="$REPOSITORY_DIR/tmp"
+export CREDENTIALS_FILE="$CONFIG_DIR/credentials.json"
+export ENCRYPTED_SECRETS_FILE="$CONFIG_DIR/secrets.json.enc"
+export DECRYPTED_SECRETS_FILE="$TMP_DIR/secrets.json"
+export VERSION_FILE="$REPOSITORY_DIR/APP_VERSION"
+
+# private APIs
+decrypt_secrets_file() {
+  if [[ ! -f "$ENCRYPTED_SECRETS_FILE" ]]; then
+    >&2 echo -e "Cannot find encrypted secrets file. Please generate secrets file with the command below.\n"
+    >&2 echo -e "$ openssl enc -aes-256-cbc -a -salt -in <SECRETS_FILE> -out $ENCRYPTED_SECRETS_FILE\n"
+    return 1
+  fi
+
+  openssl enc -aes-256-cbc -d -a \
+    -in "$ENCRYPTED_SECRETS_FILE" \
+    -out "$DECRYPTED_SECRETS_FILE" \
+    -pass "pass:$(read_password)"
+}
+
+read_password() {
+  local password="$(read_credentials | jq -r '.password // empty')"
+
+  [[ -n "$password" ]] && echo -n "$password" && return
+
+  echo -n 'Enter encryption password:'
+  read -s
+}
+
+read_credentials() {
+  if [[ -r "$CREDENTIALS_FILE" ]]; then
+    cat "$CREDENTIALS_FILE"
+  elif [[ -f "$CREDENTIALS_FILE" ]]; then
+    sudo cat "$CREDENTIALS_FILE"
+  fi
+}
+
+read_secrets_file() {
+  cat "$DECRYPTED_SECRETS_FILE"
+}
+
+authenticator_accounts() {
+  read_secrets_file | jq -r 'keys[]'
+}
+
+secret_key() {
+  local account="$1"
+
+  read_secrets_file | jq -r ".[\"$account\"]"
+}
+
+select_account() {
+  authenticator_accounts | peco | xargs echo
+}
+
+generate_token() {
+  local account="${1:-}"
+
+  shift || true
+
+  if [[ ! -z "$account" ]]; then
+    oathtool -b --totp "$(secret_key "$account")"
+  fi
+}
+
+exit_hooks() {
+  if [[ -f "$DECRYPTED_SECRETS_FILE" ]]; then
+    rm -f "$DECRYPTED_SECRETS_FILE"
+  fi
+}
+
+## commands
+version_cmd() {
+  local version=$(cat $VERSION_FILE)
+  echo "mfa version $version"
+}
+
+help_cmd() {
+  echo "usage: $(basename $0) [-h | --help] [-[no]-c | --[no]-copy] [-a <account>| --account <account>] [-l]"
+  echo '  -v, --version                      Prints the version.'
+  echo '  -h, --help                         Prints this message.'
+  echo '  -[no]-c, --[no]-copy               Copies the generated token to the Clipboard.(default)'
+  echo '  -a <account>, --account <account>  Copies the generated token of <account> to the Clipboard.'
+  echo '  -l, --list                         Prints a list of available authenticator accounts.'
+}
+
+list_cmd() {
+  decrypt_secrets_file
+
+  echo 'available authenticator accounts:'
+
+  for i in $(authenticator_accounts)
+  do
+    echo "  $i"
+  done
+}
+
+generate_cmd() {
+  decrypt_secrets_file
+
+  local account="$(select_account)"
+
+  [[ -z "$account" ]] && return 1
+
+  local token="$(generate_token $account)"
+
+  echo "MFA token: $token for $account has been generated."
+}
+
+copy_cmd() {
+  decrypt_secrets_file
+
+  local account="${1:-}"
+  shift || true
+
+  [[ -z "$account" ]] && account="$(select_account)"
+  [[ -z "$account" ]] && return 1
+
+  local token="$(generate_token $account)"
+
+  echo -n $token | pbcopy
+  echo "MFA token: $token for $account has been generated, and copied to the Clipboard."
+}
+
+# interface
+main () {
+  local opt="${1:-}"
+  shift || true
+
+  case "$opt" in
+    -v | --version)
+      version_cmd
+      ;;
+    -h | --help)
+      help_cmd
+      ;;
+    -no-c | --no-copy)
+      generate_cmd
+      ;;
+    '' | -c | --copy)
+      copy_cmd
+      ;;
+    -a | --account)
+      local account="${1:-}"
+      shift || true
+
+      copy_cmd $account
+      ;;
+    -l | --list)
+      list_cmd
+      ;;
+    *)
+      >&2 echo "mfa: '${opt} is not a valid command. See 'mfa -h' for more details."
+      return 1
+      ;;
+  esac
+}
+
+trap "exit_hooks" EXIT
+main "$@"
