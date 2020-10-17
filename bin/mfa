@@ -15,7 +15,7 @@ decrypt_secrets_file() {
   local status
 
   if [[ ! -f "$ENCRYPTED_SECRETS_FILE" ]]; then
-    >&2 echo -e "Cannot find encrypted secrets file. Please generate secrets file with the command below.\n"
+    >&2 echo -e "mfa: Cannot find encrypted secrets file. Please generate secrets file with the command below.\n"
     >&2 echo -e "$ openssl enc -aes-256-cbc -a -salt -in <SECRETS_FILE> -out $ENCRYPTED_SECRETS_FILE\n"
     return 1
   fi
@@ -84,6 +84,32 @@ generate_token() {
   fi
 }
 
+available() {
+  hash "$1" 2> /dev/null
+}
+
+check_dependencies() {
+  local commands=()
+
+  if ! available peco; then
+    commands+=('jq')
+  fi
+  if ! available peco; then
+    commands+=('peco')
+  fi
+  if ! available oathtool; then
+    commands+=('oathtool')
+  fi
+  if ! available openssl; then
+    commands+=('openssl')
+  fi
+
+  if [[ ${commands[@]+"${commands[@]}"} ]]; then
+    >&2 echo "mfa: commands [${commands[@]}] is/are not available. Please install all of its required dependencies."
+    exit 1
+  fi
+}
+
 exit_hooks() {
   if [[ -f "$DECRYPTED_SECRETS_FILE" ]]; then
     rm -f "$DECRYPTED_SECRETS_FILE"
@@ -149,6 +175,8 @@ copy_cmd() {
 
 # interface
 main () {
+  check_dependencies
+
   local opt="${1:-}"
   shift || true
 
