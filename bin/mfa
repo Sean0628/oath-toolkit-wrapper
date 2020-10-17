@@ -13,7 +13,7 @@ export VERSION_FILE="$REPOSITORY_DIR/APP_VERSION"
 # private APIs
 decrypt_secrets_file() {
   if [[ ! -f "$ENCRYPTED_SECRETS_FILE" ]]; then
-    >&2 echo -e "Cannot find encrypted secrets file. Please generate secrets file with the command below.\n"
+    >&2 echo -e "mfa: Cannot find encrypted secrets file. Please generate secrets file with the command below.\n"
     >&2 echo -e "$ openssl enc -aes-256-cbc -a -salt -in <SECRETS_FILE> -out $ENCRYPTED_SECRETS_FILE\n"
     return 1
   fi
@@ -21,7 +21,12 @@ decrypt_secrets_file() {
   openssl enc -aes-256-cbc -d -a \
     -in "$ENCRYPTED_SECRETS_FILE" \
     -out "$DECRYPTED_SECRETS_FILE" \
-    -pass "pass:$(read_password)"
+    -pass "pass:$(read_password)" || status=$?
+
+  if [[ $status -ne 0 ]]; then
+    >&2 echo 'mfa: openssl decryption has faliled. Perhaps wrong password?'
+    return 1
+  fi
 }
 
 read_password() {
@@ -66,6 +71,32 @@ generate_token() {
 
   if [[ ! -z "$account" ]]; then
     oathtool -b --totp "$(secret_key "$account")"
+  fi
+}
+
+available() {
+  hash "$1" 2> /dev/null
+}
+
+check_dependencies() {
+  local commands=()
+
+  if ! available peco; then
+    commands+=('jq')
+  fi
+  if ! available peco; then
+    commands+=('peco')
+  fi
+  if ! available oathtool; then
+    commands+=('oathtool')
+  fi
+  if ! available openssl; then
+    commands+=('openssl')
+  fi
+
+  if [[ ${commands[@]+"${commands[@]}"} ]]; then
+    >&2 echo "mfa: commands [${commands[@]}] is/are not available. Please install all of its required dependencies."
+    exit 1
   fi
 }
 
@@ -130,6 +161,8 @@ copy_cmd() {
 
 # interface
 main () {
+  check_dependencies
+
   local opt="${1:-}"
   shift || true
 
