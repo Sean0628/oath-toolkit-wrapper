@@ -5,7 +5,7 @@ This is a wrapper command for oath-toolkit. This command allows you to get TOTP 
 ## Usage
 ```sh
 $ mfa -h
-usage: mfa [-h | --help] [-[no]-c | --[no]-copy] [-a <account>| --account <account>] [-l]
+usage: mfa [-h | --help] [-[no]-c | --[no]-copy] [-a <account>| --account <account>] [-l | --list]
   -v, --version                      Prints the version.
   -h, --help                         Prints this message.
   -[no]-c, --[no]-copy               Copies the generated token to the Clipboard.(default)
