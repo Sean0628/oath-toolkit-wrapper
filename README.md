@@ -23,7 +23,7 @@ To use `mfa` command, first, the dependencies as follows should be installed:
 
 If the dependencies have not been installed, run the following:
 
-```
+```sh
 $ brew install jq oath-toolkit openssl@1.1 peco
 ```
 
@@ -61,13 +61,13 @@ $ openssl enc -aes-256-cbc -a -salt -in secrets.json -out secrets.json.enc
 You will be asked for the password. This password will be used when decrypt the secret file also.
 
 3. Place encrypted `secrets.json` into `config/` directory:
-```
+```sh
 $ mv secrets.json.enc /path/to/oath-toolkit-wrapper/config
 ```
 
 4. Remove redundant `secrets.json` file:
-```
-rm secrets.json
+```sh
+$ rm secrets.json
 ```
 
 ### [Optional]Password
@@ -78,13 +78,13 @@ It is possible to omit entering password each time you use `mfa` command by crea
 
 This password should be the same password which is used to encrypt `secrets.json` file.
 
-2. Place encrypted `credentials.json` into `config/` directory:
-```
+2. Place `credentials.json` into `config/` directory:
+```sh
 $ mv credentials.json /path/to/oath-toolkit-wrapper/config
 ```
 
 3. Set permission and change the owner for security purposes:
-```
+```sh
 $ chmod 400 config/credentials.json
 $ sudo chown root config/credentials.json
 ```
