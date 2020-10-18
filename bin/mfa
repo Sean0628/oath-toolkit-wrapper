@@ -12,6 +12,8 @@ export VERSION_FILE="$REPOSITORY_DIR/APP_VERSION"
 
 # private APIs
 decrypt_secrets_file() {
+  local status
+
   if [[ ! -f "$ENCRYPTED_SECRETS_FILE" ]]; then
     >&2 echo -e "mfa: Cannot find encrypted secrets file. Please generate secrets file with the command below.\n"
     >&2 echo -e "$ openssl enc -aes-256-cbc -a -salt -in <SECRETS_FILE> -out $ENCRYPTED_SECRETS_FILE\n"
@@ -24,6 +26,7 @@ decrypt_secrets_file() {
     -pass "pass:$(read_password)" || status=$?
 
   if [[ $status -ne 0 ]]; then
+    >&2 echo -en "\n"
     >&2 echo 'mfa: openssl decryption has faliled. Perhaps wrong password?'
     return 1
   fi
@@ -31,11 +34,14 @@ decrypt_secrets_file() {
 
 read_password() {
   local password="$(read_credentials | jq -r '.password // empty')"
+  local input
 
   [[ -n "$password" ]] && echo -n "$password" && return
 
-  echo -n 'Enter encryption password:'
-  read -s
+  >&2 echo -n 'Enter encryption password:'
+  read -s input
+
+  echo -n "$input"
 }
 
 read_credentials() {
@@ -57,7 +63,7 @@ authenticator_accounts() {
 secret_key() {
   local account="$1"
 
-  read_secrets_file | jq -r ".[\"$account\"]"
+  read_secrets_file | jq -r ".[\"$account\"] // empty"
 }
 
 select_account() {
@@ -66,11 +72,15 @@ select_account() {
 
 generate_token() {
   local account="${1:-}"
+  local key="$(secret_key "$account")"
 
   shift || true
 
-  if [[ ! -z "$account" ]]; then
-    oathtool -b --totp "$(secret_key "$account")"
+  if [[ ! -z "$key" ]]; then
+    oathtool -b --totp $key
+  else
+    >&2 echo "mfa: secret key for $account is not found."
+    return 1
   fi
 }
 
@@ -81,7 +91,7 @@ available() {
 check_dependencies() {
   local commands=()
 
-  if ! available peco; then
+  if ! available jq; then
     commands+=('jq')
   fi
   if ! available peco; then
@@ -141,7 +151,9 @@ generate_cmd() {
 
   local token="$(generate_token $account)"
 
-  echo "MFA token: $token for $account has been generated."
+  if [[ ! -z "$token" ]]; then
+    echo "MFA token: $token for $account has been generated."
+  fi
 }
 
 copy_cmd() {
@@ -155,8 +167,10 @@ copy_cmd() {
 
   local token="$(generate_token $account)"
 
-  echo -n $token | pbcopy
-  echo "MFA token: $token for $account has been generated, and copied to the Clipboard."
+  if [[ ! -z "$token" ]]; then
+    echo -n $token | pbcopy
+    echo "MFA token: $token for $account has been generated and copied to the Clipboard."
+  fi
 }
 
 # interface
