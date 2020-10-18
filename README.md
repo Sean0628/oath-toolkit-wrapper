@@ -31,18 +31,20 @@ $ brew install jq oath-toolkit openssl@1.1 peco
 Clone this repository:
 
 ```sh
-$ git clone git@github.com:Sean0628/oath-toolkit-wrapper.git ~/.oath-toolkit-wrapper
+$ git clone https://github.com/Sean0628/oath-toolkit-wrapper.git ~/.oath-toolkit-wrapper
 ```
 
 To use `mfa` command, edit the `$PATH` to include paths to the wrapper command.
 zsh:
 ```sh
-$ echo 'export PATH="$HOME/.oath-toolkit-wrapper/bin:$PATH" >> ~/.zshrc
+$ echo 'export PATH="$HOME/.oath-toolkit-wrapper/bin:$PATH"' >> ~/.zshrc
+$ source ~/.zshrc
 ```
 
 bash:
 ```sh
-$ echo 'export PATH="$HOME/.oath-toolkit-wrapper/bin:$PATH" >> ~/.bash_profile
+$ echo 'export PATH="$HOME/.oath-toolkit-wrapper/bin:$PATH"' >> ~/.bash_profile
+$ source ~/.bash_profile
 ```
 
 ## Configuration
