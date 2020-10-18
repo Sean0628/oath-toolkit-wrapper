@@ -41,6 +41,7 @@ read_password() {
   >&2 echo -n 'Enter encryption password:'
   read -s input
 
+  >&2 echo -e "\n"
   echo -n "$input"
 }
 
