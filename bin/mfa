@@ -91,7 +91,7 @@ available() {
 check_dependencies() {
   local commands=()
 
-  if ! available peco; then
+  if ! available jq; then
     commands+=('jq')
   fi
   if ! available peco; then
