@@ -38,6 +38,7 @@ $ git clone https://github.com/Sean0628/oath-toolkit-wrapper.git ~/.oath-toolkit
 ```
 
 To use `mfa` command, edit the `$PATH` to include paths to the wrapper command.
+
 zsh:
 ```sh
 $ echo 'export PATH="$HOME/.oath-toolkit-wrapper/bin:$PATH"' >> ~/.zshrc
