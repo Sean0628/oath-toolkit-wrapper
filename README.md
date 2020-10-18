@@ -13,6 +13,9 @@ usage: mfa [-h | --help] [-[no]-c | --[no]-copy] [-a <account>| --account <accou
   -l, --list                         Prints a list of available authenticator accounts.
 ```
 
+## Demo
+![mfa_demo](https://user-images.githubusercontent.com/35167423/96361564-bddfe900-1161-11eb-8371-d16c5be8469c.gif)
+
 ## Dependencies
 To use `mfa` command, first, the dependencies as follows should be installed:
 
