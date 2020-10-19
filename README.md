@@ -64,11 +64,11 @@ Follow the step by step instructions on the link below to extract your secret ke
 $ openssl enc -aes-256-cbc -a -salt -in secrets.json -out secrets.json.enc
 ```
 
-You will be asked for the password. This password will be used when decrypt the secret file also.
+You will be asked for the password. This password will be used when decrypting the secret file also.
 
 3. Place encrypted `secrets.json` into `config/` directory:
 ```sh
-$ mv secrets.json.enc /path/to/oath-toolkit-wrapper/config
+$ mv secrets.json.enc ~/.oath-toolkit-wrapper/config
 ```
 
 4. Remove redundant `secrets.json` file:
@@ -86,7 +86,7 @@ This password should be the same password which is used to encrypt `secrets.json
 
 2. Place `credentials.json` into `config/` directory:
 ```sh
-$ mv credentials.json /path/to/oath-toolkit-wrapper/config
+$ mv credentials.json ~/.oath-toolkit-wrapper/config
 ```
 
 3. Set permission and change the owner for security purposes:
