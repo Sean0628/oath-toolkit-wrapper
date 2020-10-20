@@ -1,4 +1,5 @@
 # oath-toolkit-wrapper(a.k.a. `mfa`)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Sean0628/oath-toolkit-wrapper/blob/main/LICENSE.md)
 ## Overview
 This is a wrapper command for oath-toolkit. This command allows you to get TOTP from CLI w/o any hassle.
 
@@ -94,3 +95,6 @@ $ mv credentials.json ~/.oath-toolkit-wrapper/config
 $ chmod 400 config/credentials.json
 $ sudo chown root config/credentials.json
 ```
+
+## Copyright
+Copyright (c) 2020 Sho ITO. See [LICENSE.md](https://github.com/Sean0628/oath-toolkit-wrapper/blob/main/LICENSE.md) for further details.
