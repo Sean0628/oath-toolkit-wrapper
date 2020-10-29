@@ -58,7 +58,7 @@ Follow the step by step instructions on the link below to extract your secret ke
 - [Generating Authy passwords on other authenticators](https://gist.github.com/gboudreau/94bb0c11a6209c82418d01a59d958c93#ok-thats-nice-but-i-want-to-get-rid-of-authy-now)
 
 #### Create secret file
-1. Copy and paste your secret keys, and generate your own `secrets.json` file. cf. [Sample format](https://github.com/Sean0628/oath-toolkit-wrapper/blob/main/tmp/secrets.sample.json)
+1. Copy and paste your secret keys, and generate your own `secrets.json` file. cf. [Sample format](https://github.com/Sean0628/oath-toolkit-wrapper/blob/main/secrets.sample.json)
 
 2. Encrypt `secrets.json` with OpenSSL for security purposes. Run the following:
 ```sh
@@ -81,7 +81,7 @@ $ rm secrets.json
 It is possible to omit entering password each time you use `mfa` command by creating `config/credentials.json`.
 
 #### Create credential file
-1. Generate your own `credentials.json` file. cf. [Sample format](https://github.com/Sean0628/oath-toolkit-wrapper/blob/main/tmp/credentials.sample.json) 
+1. Generate your own `credentials.json` file. cf. [Sample format](https://github.com/Sean0628/oath-toolkit-wrapper/blob/main/credentials.sample.json)
 
 This password should be the same password which is used to encrypt `secrets.json` file.
 
