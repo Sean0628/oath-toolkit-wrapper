@@ -2,5 +2,4 @@
 /config/credentials.json
 
 /tmp/*
-!tmp/credentials.sample.json
-!tmp/secrets.sample.json
+!/tmp/.gitkeep
