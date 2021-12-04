@@ -1,4 +1,5 @@
 # oath-toolkit-wrapper(a.k.a. `mfa`)
+[![CI](https://github.com/Sean0628/oath-toolkit-wrapper/actions/workflows/main.yml/badge.svg)](https://github.com/Sean0628/oath-toolkit-wrapper/actions/workflows/main.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Sean0628/oath-toolkit-wrapper/blob/main/LICENSE.md)
 ## Overview
 This is a wrapper command for oath-toolkit. This command allows you to get TOTP from CLI w/o any hassle.
