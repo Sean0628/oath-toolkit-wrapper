@@ -2,7 +2,9 @@
 
 set -eu
 
-export REPOSITORY_DIR="$(dirname $0)/.."
+REPOSITORY_DIR="$(dirname "$0")/.."
+
+export REPOSITORY_DIR
 export CONFIG_DIR="$REPOSITORY_DIR/config"
 export TMP_DIR="$REPOSITORY_DIR/tmp"
 export CREDENTIALS_FILE="$CONFIG_DIR/credentials.json"
@@ -33,13 +35,15 @@ decrypt_secrets_file() {
 }
 
 read_password() {
-  local password="$(read_credentials | jq -r '.password // empty')"
+  local password
   local input
+
+  password="$(read_credentials | jq -r '.password // empty')"
 
   [[ -n "$password" ]] && echo -n "$password" && return
 
   >&2 echo -n 'Enter encryption password:'
-  read -s input
+  read -r -s input
 
   >&2 echo -e "\n"
   echo -n "$input"
@@ -73,12 +77,14 @@ select_account() {
 
 generate_token() {
   local account="${1:-}"
-  local key="$(secret_key "$account")"
+  local key
+
+  key="$(secret_key "$account")"
 
   shift || true
 
-  if [[ ! -z "$key" ]]; then
-    oathtool -b --totp $key
+  if [[ -n "$key" ]]; then
+    oathtool -b --totp "$key"
   else
     >&2 echo "mfa: secret key for $account is not found."
     return 1
@@ -105,8 +111,8 @@ check_dependencies() {
     commands+=('openssl')
   fi
 
-  if [[ ${commands[@]+"${commands[@]}"} ]]; then
-    >&2 echo "mfa: commands [${commands[@]}] is/are not available. Please install all of its required dependencies."
+  if [ "${#commands[@]}" -gt 0 ]; then
+    >&2 echo "mfa: commands [" "${commands[@]}" "] is/are not available. Please install all of its required dependencies."
     exit 1
   fi
 }
@@ -119,12 +125,13 @@ exit_hooks() {
 
 ## commands
 version_cmd() {
-  local version=$(cat $VERSION_FILE)
+  local version
+  version=$(cat "$VERSION_FILE")
   echo "mfa version $version"
 }
 
 help_cmd() {
-  echo "usage: $(basename $0) [-h | --help] [-[no]-c | --[no]-copy] [-a <account>| --account <account>] [-l | --list]"
+  echo "usage: $(basename "$0") [-h | --help] [-[no]-c | --[no]-copy] [-a <account>| --account <account>] [-l | --list]"
   echo '  -v, --version                      Prints the version.'
   echo '  -h, --help                         Prints this message.'
   echo '  -[no]-c, --[no]-copy               Copies the generated token to the Clipboard.(default)'
@@ -146,13 +153,15 @@ list_cmd() {
 generate_cmd() {
   decrypt_secrets_file
 
-  local account="$(select_account)"
+  local account
+  account="$(select_account)"
 
   [[ -z "$account" ]] && return 1
 
-  local token="$(generate_token $account)"
+  local token
+  token="$(generate_token "$account")"
 
-  if [[ ! -z "$token" ]]; then
+  if [[ -n "$token" ]]; then
     echo "MFA token: $token for $account has been generated."
   fi
 }
@@ -166,10 +175,11 @@ copy_cmd() {
   [[ -z "$account" ]] && account="$(select_account)"
   [[ -z "$account" ]] && return 1
 
-  local token="$(generate_token $account)"
+  local token
+  token="$(generate_token "$account")"
 
-  if [[ ! -z "$token" ]]; then
-    echo -n $token | pbcopy
+  if [[ -n "$token" ]]; then
+    echo -n "$token" | pbcopy
     echo "MFA token: $token for $account has been generated and copied to the Clipboard."
   fi
 }
@@ -198,7 +208,7 @@ main () {
       local account="${1:-}"
       shift || true
 
-      copy_cmd $account
+      copy_cmd "$account"
       ;;
     -l | --list)
       list_cmd
